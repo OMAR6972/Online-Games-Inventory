@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Co-op Games Collection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Smooth expansion for text */
+        .description-text {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .description-text.expanded {
+            -webkit-line-clamp: unset;
+            overflow: visible;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569; 
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 glass-panel shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-gamepad text-3xl text-emerald-400"></i>
+                    <h1 class="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+                        Co-Op Hub
+                    </h1>
+                    <span class="bg-slate-700 text-xs px-2 py-1 rounded-full text-slate-300" id="game-count">77 Games</span>
+                </div>
+
+                <!-- Search and Filter -->
+                <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                    <div class="relative w-full sm:w-48">
+                        <i class="fa-solid fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="search-input" placeholder="Search..." 
+                            class="bg-slate-800 border border-slate-600 text-slate-200 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-10 p-2.5 outline-none transition-all">
+                    </div>
+                    
+                    <select id="genre-filter" class="bg-slate-800 border border-slate-600 text-slate-200 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block p-2.5 outline-none cursor-pointer">
+                        <option value="all">All Genres</option>
+                        <option value="Action">Action</option>
+                        <option value="Adventure">Adventure</option>
+                        <option value="Fighting">Fighting</option>
+                        <option value="Horror">Horror</option>
+                        <option value="Party">Party</option>
+                        <option value="Platformer">Platformer</option>
+                        <option value="Puzzle">Puzzle</option>
+                        <option value="Racing">Racing</option>
+                        <option value="RPG">RPG</option>
+                        <option value="Sandbox">Sandbox</option>
+                        <option value="Shooter">Shooter</option>
+                        <option value="Simulation">Simulation</option>
+                        <option value="Survival">Survival</option>
+                    </select>
+
+                    <select id="player-filter" class="bg-slate-800 border border-slate-600 text-slate-200 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block p-2.5 outline-none cursor-pointer">
+                        <option value="all">All Players</option>
+                        <option value="2">2 Players</option>
+                        <option value="4">Up to 4</option>
+                        <option value="5">5+ Players</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div id="games-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Game Cards will be injected here via JS -->
+        </div>
+        
+        <!-- Empty State -->
+        <div id="no-results" class="hidden text-center py-20">
+            <i class="fa-solid fa-ghost text-6xl text-slate-600 mb-4"></i>
+            <p class="text-xl text-slate-400">No games found matching your criteria.</p>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-panel mt-auto py-6">
+        <div class="max-w-7xl mx-auto px-4 text-center text-slate-400 text-sm">
+            <p>Collection generated from your list. <i class="fa-solid fa-heart text-red-500 mx-1"></i> Happy Gaming!</p>
+        </div>
+    </footer>
+
+    <script>
+        const games = [
+            {
+                title: "Road Redemption",
+                players: 5,
+                genre: "Racing",
+                size: "4 GB",
+                story: "A brutal combat racing game where you lead a motorcycle gang. After a cartel leader dies, a massive bounty is put on the assassin, leading to all-out war on the roads.",
+                link: "https://online-fix.me/games/racing/16688-road-redemption-po-seti.html"
+            },
+            {
+                title: "Chained Together",
+                players: 4,
+                genre: "Platformer",
+                size: "3 GB",
+                story: "You and your friends are chained together and must climb out of hell. Physics-based suffering where if one falls, everyone falls.",
+                link: "https://online-fix.me/games/adventures/17537-chained-together-po-seti.html"
+            },
+            {
+                title: "Sync Or Sink",
+                players: 2,
+                genre: "Simulation",
+                size: "2 GB",
+                story: "Trapped in a Cold War submarine, you must survive. You can't see each other and must use voice comms to coordinate repairs and keep systems running.",
+                link: "https://store.steampowered.com/app/3626910/Sync_Or_Sink/"
+            },
+            {
+                title: "Boat Together",
+                players: 8,
+                genre: "Party",
+                size: "2 GB",
+                story: "Paddle in sync or sink. A ridiculous physics-based boating game where teamwork is essential to navigate rivers without crashing.",
+                link: "https://online-fix.me/games/adventures/17987-boat-together-po-seti.html"
+            },
+            {
+                title: "Forgotten Playland",
+                players: 4,
+                genre: "Party",
+                size: "3 GB",
+                story: "Play as small teddy bears and toys in an abandoned playroom. Compete in random minigames to collect points.",
+                link: "https://store.epicgames.com/en-US/p/forgotten-playland-a6ffdb"
+            },
+            {
+                title: "Sonder",
+                players: 2,
+                genre: "Adventure",
+                size: "4 GB",
+                story: "After AI is destroyed, a scrapped robot and a soul form an unexpected friendship. A psychological narrative adventure.",
+                link: "https://store.steampowered.com/app/2692570/Sonder/"
+            },
+            {
+                title: "Stuck Together",
+                players: 2,
+                genre: "Platformer",
+                size: "1 GB",
+                story: "Two dolls are tied together by an evil child. You must escape the house, but moving while tied together leads to hilarious chaos.",
+                link: "https://online-fix.me/games/adventures/17969-stuck-together-po-seti.html"
+            },
+            {
+                title: "Bread and Fred",
+                players: 2,
+                genre: "Platformer",
+                size: "1.6 GB",
+                story: "A challenging co-op platformer where two penguins are tied together. Jump in sync to climb a snowy mountain. Requires high coordination.",
+                link: "https://online-fix.me/games/arcade/17284-bread-and-fred-po-seti.html"
+            },
+            {
+                title: "SILENT BREATH",
+                players: 4,
+                genre: "Horror",
+                size: "8 GB",
+                story: "A microphone-controlled horror experience. If you scream or make a loud noise in real life, the monsters find you. Don't panic.",
+                link: "https://online-fix.me/games/horror/17946-silent-breath-po-seti.html"
+            },
+            {
+                title: "SpiderHeck",
+                players: 4,
+                genre: "Fighting",
+                size: "1 GB",
+                story: "Spiders with laser swords. A fast-paced couch co-op brawler where you swing around and duel your friends to the death.",
+                link: "https://online-fix.me/games/fighting/17127-spiderheck-po-seti.html"
+            },
+            {
+                title: "The Timeless Child",
+                players: 2,
+                genre: "Puzzle",
+                size: "2 GB",
+                story: "A puzzle-adventure where two players exist in different timelines (past and present) within the same manor to solve mysteries.",
+                link: "https://store.steampowered.com/app/1792010/The_Timeless_Child__Prologue/"
+            },
+            {
+                title: "Grapples Galore",
+                players: 4,
+                genre: "Shooter",
+                size: "1 GB",
+                story: "Physics-based arena shooter. Use grappling hooks to swing like Spiderman and pull enemies towards you. Fast and funny.",
+                link: "https://store.steampowered.com/app/2239140/Grapples_Galore/"
+            },
+            {
+                title: "One-armed robber",
+                players: 4,
+                genre: "Shooter",
+                size: "1 GB",
+                story: "A chaotic heist game where you only have one arm. Team up with friends to rob banks, but the controls make everything harder.",
+                link: "https://store.steampowered.com/app/2551020/Onearmed_robber/"
+            },
+            {
+                title: "LOCKDOWN Protocol",
+                players: 16,
+                genre: "Party",
+                size: "2 GB",
+                story: "A social deduction game similar to Among Us but in 3D with proximity chat. Complete tasks or eliminate the crew without getting caught.",
+                link: "https://online-fix.me/games/adventures/17566-lockdown-protocol-po-seti.html"
+            },
+            {
+                title: "Dwarfs Delight",
+                players: 4,
+                genre: "Fighting",
+                size: "1 GB",
+                story: "A local multiplayer brawl where dwarves fight for supremacy in taverns. Humor, strategy, and beer-chugging action.",
+                link: "https://store.steampowered.com/app/2736040/Dwarfs_Delight/"
+            },
+            {
+                title: "Fustuq Fadi (Empty Pistachio)",
+                players: 8,
+                genre: "Party",
+                size: "Web",
+                story: "A social deduction web game similar to Spyfall. Everyone knows the location except one person (the Empty Pistachio) who must fake it.",
+                link: "https://www.fustuqgame.com/"
+            },
+            {
+                title: "Palia",
+                players: 4,
+                genre: "Simulation",
+                size: "22 GB",
+                story: "A cozy MMO community sim. Build houses, farm, fish, and explore a fantasy world with friends without the stress of combat.",
+                link: "https://store.epicgames.com/en-US/p/palia-0d428e"
+            },
+            {
+                title: "We Gotta Go",
+                players: 4,
+                genre: "Horror",
+                size: "4 GB",
+                story: "You are stuck in a haunted mansion and really need to use the bathroom. Survive ghosts and bowel pressure to reach the toilet.",
+                link: "https://store.steampowered.com/app/3967470/We_Gotta_Go/"
+            },
+            {
+                title: "LEGO Voyagers",
+                players: 2,
+                genre: "Adventure",
+                size: "2 GB",
+                story: "A cooperative puzzle adventure set in a LEGO world. Work together to build paths and solve creative block-based challenges.",
+                link: "https://online-fix.me/games/officialservers/17873-lego-voyagers-po-seti.html"
+            },
+            {
+                title: "Unravel Two",
+                players: 2,
+                genre: "Platformer",
+                size: "3.3 GB",
+                story: "Play as two Yarnys connected by a thread. Solve physics puzzles and swing through beautiful landscapes in this heartfelt adventure.",
+                link: "https://online-fix.me/games/shooter/16385-unravel-two-po-seti.html"
+            },
+            {
+                title: "Rayman Legends",
+                players: 4,
+                genre: "Platformer",
+                size: "6 GB",
+                story: "One of the best platformers ever made. Run, jump, and slap your way through musical levels and gorgeous hand-drawn worlds.",
+                link: "https://online-fix.me/games/adventures/16554-rayman-legends-po-seti.html"
+            },
+            {
+                title: "For the King",
+                players: 3,
+                genre: "RPG",
+                size: "3 GB",
+                story: "A strategic RPG board game adventure. Turn-based combat where you and your party explore a map to stop chaos from consuming the realm.",
+                link: "https://online-fix.me/games/arcade/16257-for-the-king-po-seti.html"
+            },
+            {
+                title: "The Quarry",
+                players: 8,
+                genre: "Horror",
+                size: "50 GB",
+                story: "A cinematic horror game where every choice matters. Play as camp counselors trying to survive the night. Multiplayer mode allows voting on decisions.",
+                link: "https://online-fix.me/games/horror/17076-the-quarry-po-seti.html"
+            },
+            {
+                title: "Cuphead",
+                players: 2,
+                genre: "Action",
+                size: "4 GB",
+                story: "A classic run and gun action game focused heavily on boss battles. Inspired by cartoons of the 1930s. Extremely difficult.",
+                link: "https://online-fix.me/games/arcade/16203-cuphead-po-seti.html"
+            },
+            {
+                title: "Screencheat",
+                players: 8,
+                genre: "Shooter",
+                size: "2 GB",
+                story: "A split-screen shooter where everyone is invisible. You have to look at your opponents' screens to figure out where they are to kill them.",
+                link: "https://online-fix.me/games/shooter/16755-screencheat-po-seti.html"
+            },
+            {
+                title: "Make me Float",
+                players: 2,
+                genre: "Puzzle",
+                size: "2 GB",
+                story: "An evil sorcerer turns you into balloons. Cooperate to float through puzzles and find the person who did this to you.",
+                link: "https://store.steampowered.com/app/2165530/Make_me_Float/"
+            },
+            {
+                title: "Robbing Time",
+                players: 5,
+                genre: "Action",
+                size: "2 GB",
+                story: "Plan and execute a bank robbery with friends. The bank has heavy security, so you must coordinate your stealth and assault perfectly.",
+                link: "https://online-fix.me/games/adventures/17990-robbing-time-po-seti.html"
+            },
+            {
+                title: "We Were Here Together",
+                players: 2,
+                genre: "Puzzle",
+                size: "4 GB",
+                story: "First-person puzzle adventure. You and a partner are separated in a frozen wasteland and must describe what you see to solve puzzles.",
+                link: "https://store.epicgames.com/en-US/p/we-were-here-together-6a6d66"
+            },
+            {
+                title: "Trine (Series)",
+                players: 4,
+                genre: "Platformer",
+                size: "18 GB",
+                story: "A fantasy puzzle-platformer. Control a Wizard, Thief, and Knight, combining their unique abilities to traverse physics-heavy levels.",
+                link: "https://online-fix.me/index.php?do=search&subaction=search&story=trine"
+            },
+            {
+                title: "Popucom",
+                players: 2,
+                genre: "Puzzle",
+                size: "5 GB",
+                story: "A co-op shooter puzzle game. Use colors to match enemies and solve puzzles in a vibrant, futuristic world.",
+                link: "https://online-fix.me/games/officialservers/17785-popucom-po-seti.html"
+            },
+            {
+                title: "Pode",
+                players: 2,
+                genre: "Puzzle",
+                size: "2.5 GB",
+                story: "A rock and a fallen star work together to solve ancient puzzles in a stunning mountain. Very chill and beautiful.",
+                link: "https://online-fix.me/games/adventures/16693-pode-po-seti.html"
+            },
+            {
+                title: "Biped",
+                players: 2,
+                genre: "Puzzle",
+                size: "8 GB",
+                story: "Control two little bipedal robots. You control their legs individually using analog sticks. Coordination is key to walking without falling.",
+                link: "https://online-fix.me/games/arcade/16294-biped-po-seti.html"
+            },
+            {
+                title: "Biped 2",
+                players: 4,
+                genre: "Puzzle",
+                size: "10 GB",
+                story: "The sequel to Biped, now supporting up to 4 players with new mechanics like sliding and hovering.",
+                link: "https://online-fix.me/games/sandbox/17931-biped-2-po-seti.html"
+            },
+            {
+                title: "Sackboy: A Big Adventure",
+                players: 4,
+                genre: "Platformer",
+                size: "35 GB",
+                story: "A 3D platforming adventure. Crafty controls and diverse levels make this a top-tier family or friend party game.",
+                link: "https://online-fix.me/games/adventures/17153-sackboy-a-big-adventure-po-seti.html"
+            },
+            {
+                title: "Party Animals",
+                players: 8,
+                genre: "Party",
+                size: "8 GB",
+                story: "Fight your friends as puppies, kittens, and other fuzzy creatures. Physics-based brawling similar to Gang Beasts but cuter.",
+                link: "https://online-fix.me/games/arcade/17338-party-animals-po-seti.html"
+            },
+            {
+                title: "Portal 2",
+                players: 2,
+                genre: "Puzzle",
+                size: "8 GB",
+                story: "The ultimate co-op puzzle game. Use portal guns to navigate test chambers. Requires heavy logic and teamwork.",
+                link: "https://online-fix.me/games/arcade/16211-portal-2-po-seti.html"
+            },
+            {
+                title: "Spiritfarer",
+                players: 2,
+                genre: "Simulation",
+                size: "4 GB",
+                story: "A cozy management game about dying. Play as the ferrymaster to the deceased. Build a boat, explore, and learn to say goodbye.",
+                link: "https://online-fix.me/games/shooter/16476-spiritfarer-po-seti.html"
+            },
+            {
+                title: "Never Alone",
+                players: 2,
+                genre: "Platformer",
+                size: "3 GB",
+                story: "An atmospheric puzzle platformer based on Alaskan indigenous folklore. Play as a girl and an arctic fox.",
+                link: "https://online-fix.me/games/arcade/16204-never-alone-po-seti.html"
+            },
+            {
+                title: "Death Squared",
+                players: 4,
+                genre: "Puzzle",
+                size: "1 GB",
+                story: "A cooperative puzzle game about communication. Guide robots to color-coded goals, but stepping on a trap might kill your friend.",
+                link: "https://online-fix.me/games/puzzles/16738-death-squared-po-seti.html"
+            },
+            {
+                title: "Keep Talking and Nobody Explodes",
+                players: 4,
+                genre: "Puzzle",
+                size: "1 GB",
+                story: "One player has a bomb, the others have the manual. You must talk fast to defuse it before time runs out.",
+                link: "https://online-fix.me/games/simulator/16412-keep-talking-and-nobody-explodes-po-seti.html"
+            },
+            {
+                title: "LEGO DC Super-Villains",
+                players: 2,
+                genre: "Adventure",
+                size: "20 GB",
+                story: "The Justice League has disappeared. It's up to you and a group of villains to save the world (so you can rule it).",
+                link: "https://online-fix.me/games/adventures/16540-lego-dc-super-villains-po-seti.html"
+            },
+            {
+                title: "Cat Quest II",
+                players: 2,
+                genre: "RPG",
+                size: "1 GB",
+                story: "An open-world action RPG set in a fantasy realm of cats and dogs. Simple combat, cute visuals, and lots of puns.",
+                link: "https://online-fix.me/games/arcade/16206-cat-quest-ii-po-seti.html"
+            },
+            {
+                title: "Wobbly Life",
+                players: 4,
+                genre: "Sandbox",
+                size: "2 GB",
+                story: "A lively open-world physics sandbox. Work various jobs, play minigames, and own houses in a jelly-like world.",
+                link: "https://online-fix.me/games/adventures/16596-wobbly-life-po-seti.html"
+            },
+            {
+                title: "Haven",
+                players: 2,
+                genre: "RPG",
+                size: "5 GB",
+                story: "RPG adventure about two lovers who escaped to a lost planet to be together. Glide over the grass and fight in sync.",
+                link: "https://online-fix.me/games/adventures/16646-haven-po-seti.html"
+            },
+            {
+                title: "Escape Academy",
+                players: 2,
+                genre: "Puzzle",
+                size: "5 GB",
+                story: "A school designed to train the ultimate escape room masters. Solve intricate puzzles under time pressure.",
+                link: "https://online-fix.me/games/puzzles/17042-escape-academy-po-seti.html"
+            },
+            {
+                title: "Tick Tock: A Tale for Two",
+                players: 2,
+                genre: "Puzzle",
+                size: "2 GB",
+                story: "A eerie puzzle game played on two different screens. Neither player has the full picture; you must talk to solve the mystery.",
+                link: "https://online-fix.me/games/puzzles/16671-tick-tock-a-tale-for-two-po-seti.html"
+            },
+            {
+                title: "Untitled Goose Game",
+                players: 2,
+                genre: "Puzzle",
+                size: "1 GB",
+                story: "It's a lovely morning in the village and you are a horrible goose. Now with two player mode so you can honk twice as much.",
+                link: "https://online-fix.me/games/adventures/16483-untitled-goose-game-po-seti.html"
+            },
+            {
+                title: "Goat Simulator 3",
+                players: 4,
+                genre: "Sandbox",
+                size: "5 GB",
+                story: "Pure chaos. Headbutt civilians, drive cars, and cause explosions as a goat. The sandbox is bigger and weirder than before.",
+                link: "https://online-fix.me/games/adventures/17173-goat-simulator-3-po-seti.html"
+            },
+            {
+                title: "Lovers in a Dangerous Spacetime",
+                players: 4,
+                genre: "Action",
+                size: "1 GB",
+                story: "Pilot a neon battleship together. Players must run between stations (turrets, shields, engine) to survive cosmic threats.",
+                link: "https://online-fix.me/games/arcade/16794-lovers-in-a-dangerous-spacetime-po-seti.html"
+            },
+            {
+                title: "PowerWash Simulator",
+                players: 4,
+                genre: "Simulation",
+                size: "6 GB",
+                story: "Release the pressure. Clean grime off patios, cars, and parks. Oddly satisfying and relaxing to play with friends.",
+                link: "https://online-fix.me/games/simulator/17919-powerwash-simulator-2-po-seti.html"
+            },
+            {
+                title: "Knights and Bikes",
+                players: 2,
+                genre: "Adventure",
+                size: "4 GB",
+                story: "A hand-painted action-adventure set on a British island in the 80s. Ride bikes and solve mysteries as two kids.",
+                link: "https://online-fix.me/games/adventures/17032-knights-and-bikes-po-seti.html"
+            },
+            {
+                title: "PHOGS!",
+                players: 2,
+                genre: "Adventure",
+                size: "4 GB",
+                story: "Play as a duo of dogs connected by a stretchy belly. Bark, bite, and bounce your way through obstacle courses.",
+                link: "https://online-fix.me/games/adventures/16577-phogs-po-seti.html"
+            },
+            {
+                title: "Moving Out",
+                players: 4,
+                genre: "Party",
+                size: "1 GB",
+                story: "A ridiculous physics-based moving simulator. Break windows and doors to get furniture onto the truck as fast as possible.",
+                link: "https://online-fix.me/games/arcade/16331-moving-out-po-seti.html"
+            },
+            {
+                title: "Moving Out 2",
+                players: 4,
+                genre: "Party",
+                size: "2 GB",
+                story: "The furniture removal experts are back. Now with online play and even crazier dimensions to move furniture in.",
+                link: "https://online-fix.me/games/sandbox/17316-moving-out-2-po-seti.html"
+            },
+            {
+                title: "Terraria",
+                players: 16,
+                genre: "Sandbox",
+                size: "500 MB",
+                story: "Dig, fight, explore, build. A massive 2D sandbox adventure. Fight bosses, build cities, and descend into hell.",
+                link: "https://online-fix.me/games/sandbox/16329-terraria-po-seti.html"
+            },
+            {
+                title: "Baladins",
+                players: 4,
+                genre: "RPG",
+                size: "2 GB",
+                story: "A 'Choose Your Own Adventure' RPG. Go on a quest with friends, roll dice, and see how your decisions change the story.",
+                link: "https://online-fix.me/games/adventures/17532-baladins-po-seti.html"
+            },
+            {
+                title: "Heavenly Bodies",
+                players: 4,
+                genre: "Simulation",
+                size: "2 GB",
+                story: "Wrangle the hands and arms of a 1970s space cosmonaut. Zero-gravity physics make simple tasks incredibly difficult.",
+                link: "https://online-fix.me/games/simulator/16886-heavenly-bodies-po-seti.html"
+            },
+            {
+                title: "Spelunky 2",
+                players: 4,
+                genre: "Platformer",
+                size: "1 GB",
+                story: "A roguelike platformer. Explore changing caves, find treasure, and try not to kill your teammates with traps (you will).",
+                link: "https://online-fix.me/games/rpg/16491-spelunky-2-po-seti.html"
+            },
+            {
+                title: "Castle Crashers",
+                players: 4,
+                genre: "Action",
+                size: "500 MB",
+                story: "The classic arcade beat-em-up. Hack and slash your way to victory to save the princess and defend your kingdom.",
+                link: "https://online-fix.me/games/arcade/16171-castle-crashers-po-seti.html"
+            },
+            {
+                title: "Absolum",
+                players: 2,
+                genre: "Adventure",
+                size: "4 GB",
+                story: "A deep atmospheric adventure involving puzzles and mystery, exploring a world filled with secrets and ancient mechanics.",
+                link: "https://online-fix.me/games/adventures/17901-absolum-po-seti.html"
+            },
+            {
+                title: "PICO PARK",
+                players: 8,
+                genre: "Party",
+                size: "100 MB",
+                story: "A cooperative puzzle game where you must get all the kittens to the door. Requires perfect timing and stack-building.",
+                link: "https://online-fix.me/games/puzzles/16678-pico-park-po-seti.html"
+            },
+            {
+                title: "PICO PARK 2",
+                players: 8,
+                genre: "Party",
+                size: "1 GB",
+                story: "More levels, more mechanics, and more opportunities to yell at your friends for messing up the jump.",
+                link: "https://online-fix.me/games/puzzles/17585-pico-park-2-po-seti.html"
+            },
+            {
+                title: "Buckshot Roulette",
+                players: 4,
+                genre: "Horror",
+                size: "500 MB",
+                story: "A horror tabletop game. Play Russian Roulette with a 12-gauge shotgun. Use items to cheat death and survive.",
+                link: "https://online-fix.me/games/puzzles/17621-buckshot-roulette-po-seti.html"
+            },
+            {
+                title: "Liar's Bar",
+                players: 4,
+                genre: "Party",
+                size: "4 GB",
+                story: "An immersive card game played in a shady bar. Bluff your way to victory or suffer the consequences (usually fatal).",
+                link: "https://online-fix.me/games/simulator/17601-liars-bar-po-seti.html"
+            },
+            {
+                title: "Hawked",
+                players: 3,
+                genre: "Shooter",
+                size: "15 GB",
+                story: "A free-to-play extraction shooter. Team up as Renegades to explore X-Isle, solve puzzles, fight monsters, and extract ancient artifacts.",
+                link: "https://store.epicgames.com/en-US/p/hawked-b256b5"
+            },
+            {
+                title: "Repo",
+                players: 4,
+                genre: "Horror",
+                size: "8 GB",
+                story: "You are a Repo Man. Your job is to reclaim assets from people who haven't paid. Unfortunately, some of these assets are in haunted locations.",
+                link: "https://online-fix.me/games/horror/17712-repo-po-seti.html"
+            },
+            {
+                title: "Lethal Company",
+                players: 4,
+                genre: "Survival",
+                size: "1 GB",
+                story: "You are a contracted worker for the Company. Your job is to collect scrap from abandoned, industrialized moons to meet the Company's profit quota. Don't miss the quota.",
+                link: "https://online-fix.me/games/survival/17365-lethal-company-po-seti.html"
+            },
+            {
+                title: "Phasmophobia",
+                players: 4,
+                genre: "Horror",
+                size: "21 GB",
+                story: "Psychological horror. You and your team of paranormal investigators enter haunted locations filled with paranormal activity and gather evidence.",
+                link: "https://online-fix.me/games/vr/16481-phasmophobia-po-seti.html"
+            },
+            {
+                title: "Killing Floor 3",
+                players: 6,
+                genre: "Shooter",
+                size: "50 GB",
+                story: "Join forces with up to 5 other players to survive waves of Zeds in this intense sci-fi horror shooter. Unlock perks and upgrade your weapons.",
+                link: "https://online-fix.me/games/officialservers/17824-killing-floor-3-po-seti.html"
+            },
+            {
+                title: "Escape the Backrooms",
+                players: 4,
+                genre: "Survival",
+                size: "12 GB",
+                story: "Explore the infinite expanse of the Backrooms. Traverse through eerie levels while avoiding entities and other dangers to escape.",
+                link: "https://online-fix.me/games/survival/17070-escape-the-backrooms-po-seti.html"
+            },
+            {
+                title: "Devour",
+                players: 4,
+                genre: "Horror",
+                size: "4 GB",
+                story: "A co-op horror survival game. Stop possessed cultists before they drag you to hell. Survive, scream, and hide.",
+                link: "https://online-fix.me/games/horror/16567-devour-po-seti.html"
+            },
+            {
+                title: "Demonologist",
+                players: 4,
+                genre: "Horror",
+                size: "14 GB",
+                story: "Identify evil spirits in cursed places and exorcise them using your equipment. Features voice recognition to interact with ghosts.",
+                link: "https://online-fix.me/games/horror/17238-demonologist-po-seti.html"
+            },
+            {
+                title: "Zort",
+                players: 4,
+                genre: "Horror",
+                size: "2 GB",
+                story: "A cooperative horror survival game. You and your friends must survive in a factory environment while solving puzzles and avoiding threats.",
+                link: "https://online-fix.me/games/horror/17656-zort-po-seti.html"
+            },
+            {
+                title: "Sons of the Forest",
+                players: 8,
+                genre: "Survival",
+                size: "16 GB",
+                story: "Sent to find a missing billionaire on a remote island, you find yourself in a cannibal-infested hellscape. Craft, build, and struggle to survive.",
+                link: "https://online-fix.me/games/survival/17220-sons-of-the-forest-po-seti.html"
+            },
+            {
+                title: "The Outlast Trials",
+                players: 4,
+                genre: "Horror",
+                size: "30 GB",
+                story: "Survive mind-numbing therapies and tests alone or with friends. A terrifying experience set in the Cold War era.",
+                link: "https://online-fix.me/games/horror/17259-the-outlast-trials-po-seti.html"
+            },
+            {
+                title: "Mimesis",
+                players: 8,
+                genre: "Horror",
+                size: "6 GB",
+                story: "A psychological horror game with social deduction elements. A creature is hiding among you. It looks like you, but it wants to kill you.",
+                link: "https://online-fix.me/games/adventures/17920-mimesis-po-seti.html"
+            },
+            {
+                title: "Pummel Party",
+                players: 8,
+                genre: "Party",
+                size: "1 GB",
+                story: "A 4-8 player party game. Compete against friends in board mode and destroy friendships with absurd items and unique minigames.",
+                link: "https://online-fix.me/games/arcade/16256-pummel-party-po-seti.html"
+            }
+        ];
+
+        const gamesGrid = document.getElementById('games-grid');
+        const searchInput = document.getElementById('search-input');
+        const genreFilter = document.getElementById('genre-filter');
+        const playerFilter = document.getElementById('player-filter');
+        const gameCountLabel = document.getElementById('game-count');
+        const noResults = document.getElementById('no-results');
+
+        function getPlayerBadgeColor(count) {
+            if (count === 2) return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+            if (count <= 4) return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+            return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
+        }
+
+        function getGenreBadgeColor(genre) {
+            switch(genre) {
+                case 'Horror': return 'bg-red-500/20 text-red-300 border-red-500/30';
+                case 'Party': return 'bg-pink-500/20 text-pink-300 border-pink-500/30';
+                case 'Shooter': return 'bg-orange-500/20 text-orange-300 border-orange-500/30';
+                case 'Puzzle': return 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30';
+                case 'Survival': return 'bg-green-500/20 text-green-300 border-green-500/30';
+                default: return 'bg-slate-500/20 text-slate-300 border-slate-500/30';
+            }
+        }
+
+        function getInitials(title) {
+            return title.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        }
+
+        function generateGradient(title) {
+            const hash = title.split('').reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
+            const hue1 = Math.abs(hash % 360);
+            const hue2 = (hue1 + 40) % 360;
+            return `linear-gradient(135deg, hsl(${hue1}, 70%, 20%), hsl(${hue2}, 70%, 15%))`;
+        }
+
+        function toggleText(id) {
+            const textElement = document.getElementById(`desc-${id}`);
+            const btnElement = document.getElementById(`btn-${id}`);
+            textElement.classList.toggle('expanded');
+            
+            if (textElement.classList.contains('expanded')) {
+                btnElement.innerHTML = 'Show less <i class="fa-solid fa-chevron-up ml-1"></i>';
+            } else {
+                btnElement.innerHTML = 'Show more <i class="fa-solid fa-chevron-down ml-1"></i>';
+            }
+        }
+
+        function renderGames(filterText = '', maxPlayers = 'all', genre = 'all') {
+            gamesGrid.innerHTML = '';
+            
+            const filteredGames = games.filter(game => {
+                const matchesText = game.title.toLowerCase().includes(filterText.toLowerCase());
+                
+                let matchesPlayers = true;
+                if (maxPlayers === '2') matchesPlayers = game.players === 2;
+                else if (maxPlayers === '4') matchesPlayers = game.players <= 4 && game.players > 2;
+                else if (maxPlayers === '5') matchesPlayers = game.players >= 5;
+
+                let matchesGenre = true;
+                if (genre !== 'all') matchesGenre = game.genre === genre;
+
+                return matchesText && matchesPlayers && matchesGenre;
+            });
+
+            gameCountLabel.innerText = `${filteredGames.length} Games`;
+
+            if (filteredGames.length === 0) {
+                noResults.classList.remove('hidden');
+            } else {
+                noResults.classList.add('hidden');
+            }
+
+            filteredGames.forEach((game, index) => {
+                const card = document.createElement('div');
+                card.className = 'card-hover glass-panel rounded-xl overflow-hidden flex flex-col h-full transition-all duration-300 group';
+                
+                const ytSearchLink = `https://www.youtube.com/results?search_query=${encodeURIComponent(game.title + ' gameplay')}`;
+                
+                card.innerHTML = `
+                    <div class="h-32 relative flex items-center justify-center border-b border-slate-700" style="background: ${generateGradient(game.title)}">
+                        <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all"></div>
+                        <h3 class="text-4xl font-bold text-white/10 select-none absolute">${getInitials(game.title)}</h3>
+                        
+                        <div class="absolute top-3 right-3 flex flex-col items-end gap-1">
+                             <div class="flex gap-1">
+                                <span class="text-xs font-bold px-2 py-1 rounded border ${getGenreBadgeColor(game.genre)}">
+                                    ${game.genre}
+                                </span>
+                                <span class="text-xs font-bold px-2 py-1 rounded border bg-slate-700/50 text-slate-300 border-slate-500/30">
+                                    <i class="fa-solid fa-hard-drive mr-1"></i> ${game.size}
+                                </span>
+                             </div>
+                             <span class="text-xs font-bold px-2 py-1 rounded border ${getPlayerBadgeColor(game.players)}">
+                                <i class="fa-solid fa-users mr-1"></i> ${game.players} Max
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="p-5 flex-grow flex flex-col">
+                        <h2 class="text-xl font-bold text-white mb-2 line-clamp-1" title="${game.title}">${game.title}</h2>
+                        
+                        <div class="flex-grow mb-2">
+                            <p id="desc-${index}" class="description-text text-slate-400 text-sm cursor-pointer" onclick="toggleText(${index})">
+                                ${game.story}
+                            </p>
+                            <button id="btn-${index}" onclick="toggleText(${index})" class="text-xs text-emerald-400 hover:text-emerald-300 mt-1 focus:outline-none">
+                                Show more <i class="fa-solid fa-chevron-down ml-1"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="flex gap-2 mt-4 pt-4 border-t border-slate-700/50">
+                            <a href="${game.link}" target="_blank" rel="noopener noreferrer" 
+                               class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold py-2 px-3 rounded text-center transition-colors shadow-lg shadow-emerald-900/20">
+                                <i class="fa-solid fa-download mr-1"></i> Get Game
+                            </a>
+                            <a href="${ytSearchLink}" target="_blank" rel="noopener noreferrer" 
+                               class="flex-1 bg-slate-700 hover:bg-red-600 hover:text-white text-slate-300 text-sm font-semibold py-2 px-3 rounded text-center transition-colors">
+                                <i class="fa-brands fa-youtube mr-1"></i> Gameplay
+                            </a>
+                        </div>
+                    </div>
+                `;
+                gamesGrid.appendChild(card);
+            });
+        }
+
+        // Event Listeners
+        searchInput.addEventListener('input', (e) => {
+            renderGames(e.target.value, playerFilter.value, genreFilter.value);
+        });
+
+        playerFilter.addEventListener('change', (e) => {
+            renderGames(searchInput.value, e.target.value, genreFilter.value);
+        });
+
+        genreFilter.addEventListener('change', (e) => {
+            renderGames(searchInput.value, playerFilter.value, e.target.value);
+        });
+
+        // Initial Render
+        renderGames();
+    </script>
+</body>
+</html>
